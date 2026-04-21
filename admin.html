@@ -2,63 +2,537 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Karrystores</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Admin Dashboard - Karrystores</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .bg-red { background: linear-gradient(135deg, #dc2626, #b91c1c); }
-        .product-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
-        .sidebar { background: #f8f9fa; min-height: calc(100vh - 56px); }
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: #0f0f1a;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            box-shadow: 5px 0 30px rgba(0,0,0,0.3);
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+        
         @media (max-width: 768px) {
-            .sidebar { min-height: auto; margin-bottom: 20px; }
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                width: 280px;
+                z-index: 1050;
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+        }
+        
+        .sidebar .nav-link {
+            color: #a0a0b0;
+            padding: 12px 20px;
+            margin: 5px 15px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .sidebar .nav-link:hover {
+            background: rgba(0, 255, 255, 0.1);
+            color: #00ffff;
+            transform: translateX(5px);
+        }
+        
+        .sidebar .nav-link.active {
+            background: linear-gradient(135deg, #00b4d8, #0077b6);
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,180,216,0.3);
+        }
+        
+        .sidebar .nav-link i {
+            width: 25px;
+            margin-right: 10px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            transition: all 0.3s ease;
+            padding: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        
+        /* Cards */
+        .stat-card {
+            background: linear-gradient(135deg, #1e2a3a, #0f1724);
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            color: white;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,180,216,0.2);
+            border-color: #00b4d8;
+        }
+        
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 180, 216, 0.1);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #00b4d8;
+        }
+        
+        /* Table Styles */
+        .table-container {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(0, 255, 255, 0.1);
+        }
+        
+        .table {
+            color: #e0e0e0;
+            margin-bottom: 0;
+        }
+        
+        .table thead th {
+            border-bottom-color: rgba(0, 255, 255, 0.2);
+            color: #00ffff;
+            font-weight: 600;
+        }
+        
+        .table tbody tr {
+            border-bottom-color: rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .table tbody tr:hover {
+            background: rgba(0, 180, 216, 0.05);
+        }
+        
+        /* Buttons */
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #00b4d8, #0077b6);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,180,216,0.4);
+        }
+        
+        .btn-outline-custom {
+            border: 1px solid #00b4d8;
+            background: transparent;
+            padding: 8px 20px;
+            border-radius: 10px;
+            color: #00b4d8;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-custom:hover {
+            background: #00b4d8;
+            color: white;
+        }
+        
+        /* Modal Styles */
+        .modal-content {
+            background: #1a1a2e;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 20px;
+            color: white;
+        }
+        
+        .modal-header {
+            border-bottom-color: rgba(0, 255, 255, 0.2);
+        }
+        
+        .form-control, .form-select {
+            background: #0f0f1a;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            color: white;
+            border-radius: 12px;
+            padding: 12px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background: #0f0f1a;
+            border-color: #00b4d8;
+            box-shadow: 0 0 0 0.2rem rgba(0,180,216,0.25);
+            color: white;
+        }
+        
+        .form-label {
+            color: #a0a0b0;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        /* Mobile Toggle Button */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1100;
+            background: #00b4d8;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-toggle {
+                display: block;
+            }
+        }
+        
+        /* Product Image */
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #00b4d8;
+            border-radius: 10px;
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-in {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+        
+        /* Toast */
+        .toast-custom {
+            background: linear-gradient(135deg, #00b4d8, #0077b6);
+            color: white;
+            border-radius: 12px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000;
+            padding: 15px 25px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .toast-custom.show {
+            transform: translateX(0);
         }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg bg-red text-white">
-    <div class="container">
-        <a class="navbar-brand text-white" href="index.html"><i class="fas fa-car"></i> Karrystores Admin</a>
-        <div class="ms-auto">
-            <a href="index.html" class="btn btn-outline-light me-2"><i class="fas fa-store"></i> View Store</a>
-            <button class="btn btn-outline-light" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+<!-- Mobile Toggle Button -->
+<button class="mobile-toggle" id="mobileToggle">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="text-center py-4">
+        <i class="fas fa-car fa-3x" style="color: #00b4d8;"></i>
+        <h4 class="text-white mt-2">Karrystores</h4>
+        <p class="text-muted small">Admin Dashboard</p>
+    </div>
+    <hr style="border-color: rgba(0,255,255,0.1); margin: 0 20px;">
+    <nav class="nav flex-column mt-3">
+        <a class="nav-link active" href="#" onclick="showSection('dashboard')">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a class="nav-link" href="#" onclick="showSection('products')">
+            <i class="fas fa-box"></i> Products
+        </a>
+        <a class="nav-link" href="#" onclick="showSection('orders')">
+            <i class="fas fa-shopping-cart"></i> Orders
+        </a>
+        <a class="nav-link" href="#" onclick="showSection('analytics')">
+            <i class="fas fa-chart-line"></i> Analytics
+        </a>
+        <a class="nav-link" href="#" onclick="showSection('settings')">
+            <i class="fas fa-cog"></i> Settings
+        </a>
+    </nav>
+    <div class="position-absolute bottom-0 w-100 p-3" style="margin-bottom: 20px;">
+        <hr style="border-color: rgba(0,255,255,0.1);">
+        <a href="index.html" class="btn btn-outline-custom w-100">
+            <i class="fas fa-store"></i> View Store
+        </a>
+        <button onclick="logout()" class="btn btn-outline-custom w-100 mt-2">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+    <!-- Dashboard Section -->
+    <div id="dashboardSection" class="animate-in">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+            <h2 class="text-white">Dashboard</h2>
+            <div class="text-muted">
+                <i class="fas fa-calendar-alt"></i> <span id="currentDate"></span>
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Total Products</p>
+                            <h3 class="text-white mb-0" id="totalProducts">0</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-success"><i class="fas fa-arrow-up"></i> +12% this month</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Total Orders</p>
+                            <h3 class="text-white mb-0" id="totalOrders">0</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-success"><i class="fas fa-arrow-up"></i> +8% this week</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Revenue</p>
+                            <h3 class="text-white mb-0" id="totalRevenue">$0</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-success"><i class="fas fa-arrow-up"></i> +23% this month</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Low Stock Items</p>
+                            <h3 class="text-white mb-0" id="lowStock">0</h3>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-warning"><i class="fas fa-clock"></i> Needs attention</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <div class="table-container">
+                    <h5 class="text-white mb-3"><i class="fas fa-chart-bar"></i> Sales Overview</h5>
+                    <canvas id="salesChart" height="200"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="table-container">
+                    <h5 class="text-white mb-3"><i class="fas fa-chart-pie"></i> Top Products</h5>
+                    <canvas id="topProductsChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Orders -->
+        <div class="table-container">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                <h5 class="text-white mb-2"><i class="fas fa-history"></i> Recent Orders</h5>
+                <button class="btn btn-primary-custom btn-sm" onclick="showSection('orders')">
+                    View All Orders <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th></tr>
+                    </thead>
+                    <tbody id="recentOrdersTable"></tbody>
+                </table>
+            </div>
         </div>
     </div>
-</nav>
 
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 sidebar p-3">
-            <h5><i class="fas fa-box"></i> Management</h5>
-            <hr>
-            <button class="btn btn-danger w-100 mb-2" data-bs-toggle="modal" data-bs-target="#productModal" onclick="openAddModal()">
-                <i class="fas fa-plus"></i> Add Product
-            </button>
-            <button class="btn btn-secondary w-100" onclick="exportProducts()">
-                <i class="fas fa-download"></i> Backup Products
-            </button>
-            <button class="btn btn-secondary w-100 mt-2" onclick="importProducts()">
-                <i class="fas fa-upload"></i> Restore Backup
+    <!-- Products Section -->
+    <div id="productsSection" style="display: none;" class="animate-in">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+            <h2 class="text-white">Product Management</h2>
+            <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#productModal" onclick="openAddModal()">
+                <i class="fas fa-plus"></i> Add New Product
             </button>
         </div>
         
-        <!-- Main Content -->
-        <div class="col-md-9 col-lg-10 p-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h4 class="mb-0"><i class="fas fa-list"></i> Product List</h4>
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr><th>Image</th><th>Name</th><th>Model</th><th>Year</th><th>Price</th><th>Stock</th><th>Condition</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="productsTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Section -->
+    <div id="ordersSection" style="display: none;" class="animate-in">
+        <h2 class="text-white mb-4">Order Management</h2>
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr><th>Order ID</th><th>Customer</th><th>Phone</th><th>Country</th><th>Total</th><th>Status</th><th>Date</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="ordersTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Section -->
+    <div id="analyticsSection" style="display: none;" class="animate-in">
+        <h2 class="text-white mb-4">Analytics Dashboard</h2>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="table-container">
+                    <h5 class="text-white mb-3">Monthly Sales Trend</h5>
+                    <canvas id="monthlySalesChart" height="250"></canvas>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr><th>Image</th><th>Name</th><th>Model</th><th>Year</th><th>Price</th><th>Stock</th><th>Actions</th></tr>
-                            </thead>
-                            <tbody id="productsTable"></tbody>
-                        </table>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="table-container">
+                    <h5 class="text-white mb-3">Category Performance</h5>
+                    <canvas id="categoryChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="table-container">
+            <h5 class="text-white mb-3">Best Selling Products</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Product</th><th>Units Sold</th><th>Revenue</th><th>Growth</th></tr></thead>
+                    <tbody id="bestSellingTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Section -->
+    <div id="settingsSection" style="display: none;" class="animate-in">
+        <h2 class="text-white mb-4">Store Settings</h2>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="table-container">
+                    <h5 class="text-white mb-3">General Settings</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Store Name</label>
+                        <input type="text" class="form-control" id="storeName" value="Karrystores">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">WhatsApp Number</label>
+                        <input type="text" class="form-control" id="whatsappNumber" value="+254727939626">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Admin Password</label>
+                        <input type="password" class="form-control" id="adminPassword" placeholder="Change password">
+                    </div>
+                    <button class="btn btn-primary-custom" onclick="saveSettings()">Save Changes</button>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="table-container">
+                    <h5 class="text-white mb-3">Backup & Restore</h5>
+                    <button class="btn btn-outline-custom w-100 mb-2" onclick="exportProducts()">
+                        <i class="fas fa-download"></i> Export Products Backup
+                    </button>
+                    <button class="btn btn-outline-custom w-100" onclick="importProducts()">
+                        <i class="fas fa-upload"></i> Import Products Backup
+                    </button>
+                    <hr style="border-color: rgba(0,255,255,0.1);">
+                    <button class="btn btn-danger w-100" onclick="clearAllData()">
+                        <i class="fas fa-trash"></i> Clear All Data (Reset Store)
+                    </button>
                 </div>
             </div>
         </div>
@@ -69,8 +543,8 @@
 <div class="modal fade" id="productModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="modalTitle">Add Product</h5>
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add New Product</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -111,76 +585,124 @@
                         </div>
                         <div class="col-12 mb-3">
                             <label class="form-label">Description</label>
-                            <textarea class="form-control" id="description" rows="3" placeholder="Detailed product description..."></textarea>
+                            <textarea class="form-control" id="description" rows="3"></textarea>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" onclick="saveProduct()">Save Product</button>
+                <button type="button" class="btn btn-primary-custom" onclick="saveProduct()">Save Product</button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Toast Notification -->
+<div id="toast" class="toast-custom">
+    <i class="fas fa-check-circle"></i> <span id="toastMessage">Action completed!</span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// ========== DATA MANAGEMENT ==========
 let products = [];
+let orders = JSON.parse(localStorage.getItem('karrystores_orders') || '[]');
 
-function checkAuth() {
-    const isLoggedIn = localStorage.getItem('karrystores_admin');
-    if (!isLoggedIn) {
-        const password = prompt('Enter admin password:');
-        if (password === 'admin123') {
-            localStorage.setItem('karrystores_admin', 'true');
-        } else {
-            alert('Wrong password!');
-            window.location.href = 'index.html';
-        }
-    }
-}
-
-function logout() {
-    localStorage.removeItem('karrystores_admin');
-    window.location.href = 'index.html';
-}
-
+// Load products from localStorage
 function loadProducts() {
     const saved = localStorage.getItem('karrystores_products');
     if (saved && JSON.parse(saved).length > 0) {
         products = JSON.parse(saved);
     } else {
         products = [
-            { id: 1, name: "Front Bumper Toyota Mark X", description: "Original quality front bumper for Toyota Mark X", price: 250, car_model: "Mark X", car_year: "2010-2015", condition: "new", stock: 10, image: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400" },
-            { id: 2, name: "Rear Bumper Toyota Premio", description: "High quality rear bumper for Toyota Premio", price: 220, car_model: "Premio", car_year: "2012-2018", condition: "new", stock: 8, image: "https://images.unsplash.com/photo-1552519507-88aa2dfa9fdb?w=400" },
-            { id: 3, name: "Front Bumper Toyota Axio", description: "Durable front bumper for Toyota Axio", price: 200, car_model: "Axio", car_year: "2010-2016", condition: "used", stock: 5, image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400" }
+            { id: 1, name: "Front Bumper Toyota Mark X", description: "Original quality front bumper", price: 250, car_model: "Mark X", car_year: "2010-2015", condition: "new", stock: 10, image: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400" },
+            { id: 2, name: "Rear Bumper Toyota Premio", description: "High quality rear bumper", price: 220, car_model: "Premio", car_year: "2012-2018", condition: "new", stock: 8, image: "https://images.unsplash.com/photo-1552519507-88aa2dfa9fdb?w=400" },
+            { id: 3, name: "Front Bumper Toyota Axio", description: "Durable front bumper", price: 200, car_model: "Axio", car_year: "2010-2016", condition: "used", stock: 5, image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400" }
         ];
         localStorage.setItem('karrystores_products', JSON.stringify(products));
     }
     displayProducts();
+    updateStats();
 }
 
 function displayProducts() {
     const tbody = document.getElementById('productsTable');
     if (products.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No products found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center">No products found</td></tr>';
         return;
     }
     
     tbody.innerHTML = products.map(product => `
         <tr>
-            <td><img src="${product.image}" class="product-img" onerror="this.src='https://via.placeholder.com/60'"></td>
-            <td><strong>${product.name}</strong><br><small class="text-muted">${(product.description || '').substring(0, 40)}...</small></td>
+            <td><img src="${product.image}" class="product-img" onerror="this.src='https://via.placeholder.com/50'"></td>
+            <td><strong>${product.name}</strong><br><small class="text-muted">${(product.description || '').substring(0, 30)}...</small></td>
             <td>${product.car_model}</td>
             <td>${product.car_year}</td>
-            <td class="text-danger fw-bold">$${product.price}</td>
+            <td class="text-info fw-bold">$${product.price}</td>
             <td>${product.stock}</td>
+            <td><span class="badge ${product.condition === 'new' ? 'bg-success' : 'bg-warning'}">${product.condition}</span></td>
             <td>
-                <button class="btn btn-sm btn-primary mb-1" onclick="editProduct(${product.id})"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm btn-info mb-1" onclick="editProduct(${product.id})"><i class="fas fa-edit"></i></button>
                 <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
     `).join('');
+}
+
+function displayOrders() {
+    const tbody = document.getElementById('ordersTable');
+    const recentTbody = document.getElementById('recentOrdersTable');
+    
+    if (orders.length === 0) {
+        const emptyMsg = '<tr><td colspan="8" class="text-center">No orders yet</td></tr>';
+        if (tbody) tbody.innerHTML = emptyMsg;
+        if (recentTbody) recentTbody.innerHTML = emptyMsg;
+        return;
+    }
+    
+    // Recent orders (last 5)
+    const recentOrders = [...orders].reverse().slice(0, 5);
+    if (recentTbody) {
+        recentTbody.innerHTML = recentOrders.map(order => `
+            <tr>
+                <td><code>${order.code || 'ORD-' + order.id}</code></td>
+                <td>${order.name}</td>
+                <td>$${order.total}</td>
+                <td><span class="badge bg-warning">Pending</span></td>
+                <td>${new Date(order.date || Date.now()).toLocaleDateString()}</td>
+            </tr>
+        `).join('');
+    }
+    
+    // All orders
+    if (tbody) {
+        tbody.innerHTML = [...orders].reverse().map(order => `
+            <tr>
+                <td><code>${order.code || 'ORD-' + order.id}</code></td>
+                <td>${order.name}</td>
+                <td>${order.phone}</td>
+                <td>${order.country || 'N/A'}</td>
+                <td class="text-info fw-bold">$${order.total}</td>
+                <td><span class="badge bg-warning">Pending</span></td>
+                <td>${new Date(order.date || Date.now()).toLocaleDateString()}</td>
+                <td>
+                    <a href="https://wa.me/${order.phone}" target="_blank" class="btn btn-sm btn-success">
+                        <i class="fab fa-whatsapp"></i> Chat
+                    </a>
+                </td>
+            </tr>
+        `).join('');
+    }
+}
+
+function updateStats() {
+    document.getElementById('totalProducts').innerText = products.length;
+    document.getElementById('totalOrders').innerText = orders.length;
+    document.getElementById('lowStock').innerText = products.filter(p => p.stock < 5).length;
+    
+    const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+    document.getElementById('totalRevenue').innerText = `$${totalRevenue}`;
 }
 
 function saveProduct() {
@@ -198,23 +720,25 @@ function saveProduct() {
     };
     
     if (!product.name || !product.car_model || !product.price || !product.image) {
-        alert('Please fill all required fields');
+        showToast('Please fill all required fields!', 'error');
         return;
     }
     
     if (id) {
         const index = products.findIndex(p => p.id === parseInt(id));
         products[index] = product;
+        showToast('Product updated successfully!', 'success');
     } else {
         products.push(product);
+        showToast('Product added successfully!', 'success');
     }
     
     localStorage.setItem('karrystores_products', JSON.stringify(products));
     displayProducts();
+    updateStats();
     
     bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
     document.getElementById('productForm').reset();
-    alert('Product saved successfully!');
 }
 
 function editProduct(id) {
@@ -240,14 +764,15 @@ function deleteProduct(id) {
         products = products.filter(p => p.id !== id);
         localStorage.setItem('karrystores_products', JSON.stringify(products));
         displayProducts();
-        alert('Product deleted!');
+        updateStats();
+        showToast('Product deleted successfully!', 'success');
     }
 }
 
 function openAddModal() {
     document.getElementById('productForm').reset();
     document.getElementById('productId').value = '';
-    document.getElementById('modalTitle').innerText = 'Add Product';
+    document.getElementById('modalTitle').innerText = 'Add New Product';
 }
 
 function exportProducts() {
@@ -256,10 +781,10 @@ function exportProducts() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'karrystores-backup.json';
+    a.download = `karrystores-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    alert('Products backed up successfully!');
+    showToast('Products exported successfully!', 'success');
 }
 
 function importProducts() {
@@ -270,12 +795,19 @@ function importProducts() {
         const file = e.target.files[0];
         const reader = new FileReader();
         reader.onload = (event) => {
-            const imported = JSON.parse(event.target.result);
-            if (imported && imported.length > 0) {
-                products = imported;
-                localStorage.setItem('karrystores_products', JSON.stringify(products));
-                displayProducts();
-                alert('Products restored successfully!');
+            try {
+                const imported = JSON.parse(event.target.result);
+                if (imported && imported.length > 0) {
+                    products = imported;
+                    localStorage.setItem('karrystores_products', JSON.stringify(products));
+                    displayProducts();
+                    updateStats();
+                    showToast('Products restored successfully!', 'success');
+                } else {
+                    showToast('Invalid backup file!', 'error');
+                }
+            } catch (err) {
+                showToast('Error reading backup file!', 'error');
             }
         };
         reader.readAsText(file);
@@ -283,9 +815,180 @@ function importProducts() {
     input.click();
 }
 
+function clearAllData() {
+    if (confirm('WARNING: This will delete ALL products and orders. This cannot be undone! Are you sure?')) {
+        if (confirm('Type "CONFIRM" to proceed')) {
+            const confirmText = prompt('Type "CONFIRM" to delete all data:');
+            if (confirmText === 'CONFIRM') {
+                products = [];
+                orders = [];
+                localStorage.setItem('karrystores_products', JSON.stringify(products));
+                localStorage.setItem('karrystores_orders', JSON.stringify(orders));
+                displayProducts();
+                displayOrders();
+                updateStats();
+                showToast('All data cleared successfully!', 'success');
+            }
+        }
+    }
+}
+
+function saveSettings() {
+    const newPassword = document.getElementById('adminPassword').value;
+    if (newPassword) {
+        localStorage.setItem('karrystores_admin_password', newPassword);
+        showToast('Password updated! Use new password next login.', 'success');
+    }
+    showToast('Settings saved!', 'success');
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    toastMessage.innerHTML = message;
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+// Section Navigation
+function showSection(section) {
+    document.querySelectorAll('[id$="Section"]').forEach(el => {
+        el.style.display = 'none';
+    });
+    document.getElementById(`${section}Section`).style.display = 'block';
+    
+    document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    event.target.closest('.nav-link').classList.add('active');
+    
+    if (section === 'analytics') {
+        initAnalyticsCharts();
+    }
+}
+
+// Charts
+let salesChart, topProductsChart, monthlySalesChart, categoryChart;
+
+function initDashboardCharts() {
+    const ctx = document.getElementById('salesChart')?.getContext('2d');
+    if (ctx && salesChart) salesChart.destroy();
+    if (ctx) {
+        salesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Sales',
+                    data: [1250, 1890, 2100, 2780, 3450, 4120],
+                    borderColor: '#00b4d8',
+                    backgroundColor: 'rgba(0, 180, 216, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#a0a0b0' } } } }
+        });
+    }
+    
+    const ctx2 = document.getElementById('topProductsChart')?.getContext('2d');
+    if (ctx2 && topProductsChart) topProductsChart.destroy();
+    if (ctx2) {
+        const topProducts = products.slice(0, 4).map(p => p.name.substring(0, 15));
+        const topSales = products.slice(0, 4).map(() => Math.floor(Math.random() * 50) + 20);
+        topProductsChart = new Chart(ctx2, {
+            type: 'doughnut',
+            data: { labels: topProducts, datasets: [{ data: topSales, backgroundColor: ['#00b4d8', '#0077b6', '#023e8a', '#03045e'] }] },
+            options: { responsive: true, plugins: { legend: { labels: { color: '#a0a0b0' } } } }
+        });
+    }
+}
+
+function initAnalyticsCharts() {
+    const ctx = document.getElementById('monthlySalesChart')?.getContext('2d');
+    if (ctx && monthlySalesChart) monthlySalesChart.destroy();
+    if (ctx) {
+        monthlySalesChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{ label: 'Revenue', data: [2.5, 3.2, 4.1, 3.8, 5.2, 6.1, 7.2, 6.8, 7.5, 8.1, 9.2, 10.5], backgroundColor: '#00b4d8', borderRadius: 8 }]
+            },
+            options: { responsive: true, plugins: { legend: { labels: { color: '#a0a0b0' } } } }
+        });
+    }
+    
+    const ctx2 = document.getElementById('categoryChart')?.getContext('2d');
+    if (ctx2 && categoryChart) categoryChart.destroy();
+    if (ctx2) {
+        const models = [...new Set(products.map(p => p.car_model))];
+        categoryChart = new Chart(ctx2, {
+            type: 'pie',
+            data: { labels: models, datasets: [{ data: models.map(() => Math.floor(Math.random() * 40) + 10), backgroundColor: ['#00b4d8', '#0077b6', '#023e8a', '#03045e', '#48cae4'] }] },
+            options: { responsive: true, plugins: { legend: { labels: { color: '#a0a0b0' } } } }
+        });
+    }
+}
+
+// Auth
+function checkAuth() {
+    const savedPassword = localStorage.getItem('karrystores_admin_password');
+    const isLoggedIn = localStorage.getItem('karrystores_admin');
+    if (!isLoggedIn) {
+        const password = prompt('Enter admin password:');
+        const validPassword = savedPassword ? password === savedPassword : password === 'admin123';
+        if (validPassword) {
+            localStorage.setItem('karrystores_admin', 'true');
+        } else {
+            alert('Wrong password!');
+            window.location.href = 'index.html';
+        }
+    }
+}
+
+function logout() {
+    localStorage.removeItem('karrystores_admin');
+    window.location.href = 'index.html';
+}
+
+// Date
+function updateDate() {
+    const dateElement = document.getElementById('currentDate');
+    if (dateElement) {
+        dateElement.innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+}
+
+// Mobile Toggle
+document.getElementById('mobileToggle')?.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('active');
+});
+
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', (e) => {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('mobileToggle');
+    if (window.innerWidth <= 768 && sidebar.classList.contains('active') && !sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove('active');
+    }
+});
+
+// Initialize
 checkAuth();
 loadProducts();
+displayOrders();
+updateStats();
+updateDate();
+initDashboardCharts();
+
+// Auto-refresh orders every 30 seconds
+setInterval(() => {
+    orders = JSON.parse(localStorage.getItem('karrystores_orders') || '[]');
+    displayOrders();
+    updateStats();
+}, 30000);
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
